@@ -2,24 +2,35 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Appointment;
+use App\Models\Doctor;
+use App\Models\MedicalRecord;
+use App\Models\Medicine;
+use App\Models\Patient;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $doctors = Doctor::factory(3)->create();
+        $patients = Patient::factory(20)->create();
+        $medicines = Medicine::factory(10)->create();
+        $appointments = collect();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        for ($index = 0; $index < 25; $index++) {
+            $appointments->push(Appointment::factory()->create([
+                'doctor_id' => $doctors->random()->id,
+                'patient_id' => $patients->random()->id,
+            ]));
+        }
+
+        $appointments->take(12)->each(function (Appointment $appointment) use ($medicines): void {
+            $appointment->update(['status' => 'completed']);
+            MedicalRecord::factory()->create([
+                'appointment_id' => $appointment->id,
+                'medicine_id' => $medicines->random()->id,
+            ]);
+        });
     }
 }
